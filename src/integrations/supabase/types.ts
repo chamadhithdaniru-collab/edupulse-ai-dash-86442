@@ -14,148 +14,16 @@ export type Database = {
   }
   public: {
     Tables: {
-      attendance: {
-        Row: {
-          absence_reason: string | null
-          created_at: string | null
-          date: string
-          id: string
-          status: number
-          student_id: string | null
-        }
-        Insert: {
-          absence_reason?: string | null
-          created_at?: string | null
-          date: string
-          id?: string
-          status: number
-          student_id?: string | null
-        }
-        Update: {
-          absence_reason?: string | null
-          created_at?: string | null
-          date?: string
-          id?: string
-          status?: number
-          student_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id: string
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-        }
-        Relationships: []
-      }
-      students: {
-        Row: {
-          attendance_percentage: number | null
-          created_at: string | null
-          grade: string
-          id: string
-          index_number: string
-          name: string
-          photo_url: string | null
-          specialty: string | null
-          status: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          attendance_percentage?: number | null
-          created_at?: string | null
-          grade: string
-          id?: string
-          index_number: string
-          name: string
-          photo_url?: string | null
-          specialty?: string | null
-          status?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          attendance_percentage?: number | null
-          created_at?: string | null
-          grade?: string
-          id?: string
-          index_number?: string
-          name?: string
-          photo_url?: string | null
-          specialty?: string | null
-          status?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "students_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "teacher" | "admin"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -282,8 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["teacher", "admin"],
-    },
+    Enums: {},
   },
 } as const
