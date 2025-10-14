@@ -8,6 +8,7 @@ import { useTheme } from "next-themes";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { StudentsList } from "@/components/students/StudentsList";
 import { AttendanceTracking } from "@/components/attendance/AttendanceTracking";
+import { CameraAttendance } from "@/components/attendance/CameraAttendance";
 import { AIInsights } from "@/components/ai/AIInsights";
 
 const Dashboard = () => {
@@ -134,6 +135,9 @@ const Dashboard = () => {
 
         {/* AI Insights */}
         <AIInsights />
+
+        {/* Camera Attendance */}
+        <CameraAttendance selectedDate={new Date()} onUpdate={loadStats} />
 
         {/* Attendance Tracking */}
         <AttendanceTracking onUpdate={loadStats} />

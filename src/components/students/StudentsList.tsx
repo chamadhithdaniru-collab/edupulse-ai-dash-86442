@@ -44,7 +44,7 @@ export const StudentsList = ({ onUpdate }: StudentsListProps) => {
         .order("name");
 
       if (error) throw error;
-      setStudents(data || []);
+      setStudents((data || []) as Student[]);
     } catch (error: any) {
       toast({
         title: "Error",

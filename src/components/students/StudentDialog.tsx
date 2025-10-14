@@ -155,13 +155,21 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
 
           <div className="space-y-2">
             <Label htmlFor="grade">Grade</Label>
-            <Input
-              id="grade"
+            <Select
               value={formData.grade}
-              onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-              placeholder="e.g., 10A, 11B"
-              required
-            />
+              onValueChange={(value) => setFormData({ ...formData, grade: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select grade" />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                {Array.from({ length: 13 }, (_, i) => i + 1).map((grade) => (
+                  <SelectItem key={grade} value={`Grade ${grade}`}>
+                    Grade {grade}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
