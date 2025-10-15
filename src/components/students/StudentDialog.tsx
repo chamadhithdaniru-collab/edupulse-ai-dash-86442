@@ -33,6 +33,7 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
     name: "",
     index_number: "",
     grade: "",
+    section: "",
     status: "active" as 'active' | 'at_risk' | 'inactive',
     specialty: "",
   });
@@ -44,6 +45,7 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
         name: student.name,
         index_number: student.index_number,
         grade: student.grade,
+        section: (student as any).section || "",
         status: student.status,
         specialty: student.specialty || "",
       });
@@ -52,6 +54,7 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
         name: "",
         index_number: "",
         grade: "",
+        section: "",
         status: "active",
         specialty: "",
       });
@@ -153,27 +156,40 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="grade">Grade</Label>
-            <Select
-              value={formData.grade}
-              onValueChange={(value) => setFormData({ ...formData, grade: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select grade" />
-              </SelectTrigger>
-              <SelectContent className="bg-background">
-                {Array.from({ length: 13 }, (_, i) => i + 1).map((grade) => (
-                  <SelectItem key={grade} value={`Grade ${grade}`}>
-                    Grade {grade}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="grade">Grade</Label>
+              <Select
+                value={formData.grade}
+                onValueChange={(value) => setFormData({ ...formData, grade: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select grade" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {Array.from({ length: 13 }, (_, i) => i + 1).map((grade) => (
+                    <SelectItem key={grade} value={grade.toString()}>
+                      Grade {grade}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="section">Section</Label>
+              <Input
+                id="section"
+                value={formData.section}
+                onChange={(e) => setFormData({ ...formData, section: e.target.value.toUpperCase() })}
+                placeholder="e.g., A, B, C"
+                maxLength={2}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="specialty">Specialty</Label>
+            <Label htmlFor="specialty">Specialty (Optional)</Label>
             <Input
               id="specialty"
               value={formData.specialty}

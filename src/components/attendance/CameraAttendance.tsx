@@ -114,11 +114,11 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-4 sm:p-6">
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold mb-2">Camera Attendance</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-base sm:text-lg font-semibold mb-2">Camera Attendance</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Capture a classroom photo to automatically mark attendance using AI
           </p>
         </div>
@@ -126,13 +126,13 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
         {!capturedImage ? (
           <div className="space-y-4">
             {!streaming ? (
-              <div className="flex gap-2">
-                <Button onClick={startCamera} className="gap-2">
-                  <Camera className="h-4 w-4" />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={startCamera} className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+                  <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
                   Start Camera
                 </Button>
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
-                  <Upload className="h-4 w-4" />
+                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+                  <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
                   Upload Photo
                 </Button>
                 <input
@@ -145,18 +145,21 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
               </div>
             ) : (
               <div className="space-y-4">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full rounded-lg border"
-                />
-                <div className="flex gap-2">
-                  <Button onClick={capturePhoto} className="gap-2">
-                    <Camera className="h-4 w-4" />
+                <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border-2 border-primary/20">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button onClick={capturePhoto} className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+                    <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
                     Capture Photo
                   </Button>
-                  <Button variant="outline" onClick={stopCamera}>
+                  <Button variant="outline" onClick={stopCamera} className="w-full sm:w-auto text-xs sm:text-sm">
                     Cancel
                   </Button>
                 </div>
@@ -165,20 +168,22 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
           </div>
         ) : (
           <div className="space-y-4">
-            <img 
-              src={capturedImage} 
-              alt="Captured classroom" 
-              className="w-full rounded-lg border"
-            />
-            <div className="flex gap-2">
+            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border-2 border-primary/20">
+              <img 
+                src={capturedImage} 
+                alt="Captured classroom" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={processAttendance} 
                 disabled={loading}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto text-xs sm:text-sm"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                     Processing...
                   </>
                 ) : (
@@ -189,6 +194,7 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
                 variant="outline" 
                 onClick={() => setCapturedImage(null)}
                 disabled={loading}
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
                 Retake
               </Button>

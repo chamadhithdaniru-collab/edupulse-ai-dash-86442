@@ -106,7 +106,7 @@ export const AIInsights = () => {
                 <TrendingDown className="h-5 w-5 text-accent mt-0.5" />
                 <div className="flex-1">
                   <h3 className="font-semibold mb-2 text-accent">Attendance Trends</h3>
-                  <p className="text-sm text-muted-foreground">{insights.trends}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{insights.trends}</p>
                 </div>
               </div>
             </div>

@@ -46,11 +46,13 @@ export const StudentCard = ({ student, onEdit, onDelete }: StudentCardProps) => 
 
         {/* Info */}
         <div>
-          <h3 className="font-semibold text-lg">{student.name}</h3>
-          <p className="text-sm text-muted-foreground">Index: {student.index_number}</p>
-          <p className="text-sm text-muted-foreground">Grade: {student.grade}</p>
+          <h3 className="font-semibold text-base sm:text-lg truncate">{student.name}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">Index: {student.index_number}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Grade: {student.grade}{(student as any).section ? `-${(student as any).section}` : ''}
+          </p>
           {student.specialty && (
-            <p className="text-sm text-muted-foreground">Specialty: {student.specialty}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">Specialty: {student.specialty}</p>
           )}
         </div>
 

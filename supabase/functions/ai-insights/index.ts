@@ -24,14 +24,29 @@ serve(async (req) => {
         model: 'google/gemini-2.5-flash',
         messages: [{
           role: 'user',
-          content: `Analyze this school attendance data and provide insights:
-Students: ${JSON.stringify(students)}
-Recent Attendance: ${JSON.stringify(attendanceRecords?.slice(0, 50) || [])}
+          content: `You are an educational data analyst. Analyze this school attendance data and provide actionable insights.
 
-Provide JSON with:
-- atRiskStudents: array of student names with attendance < 75%
-- trends: string describing patterns
-- recommendations: array of actionable suggestions`
+STUDENT DATA:
+${JSON.stringify(students, null, 2)}
+
+RECENT ATTENDANCE RECORDS (showing date, student_id, status where 1=present, 0=absent):
+${JSON.stringify(attendanceRecords?.slice(0, 100) || [], null, 2)}
+
+Analyze the data carefully and provide:
+1. At-risk students: List students with attendance percentage < 75% OR showing declining attendance patterns
+2. Attendance trends: Identify patterns like:
+   - Which days have lower attendance
+   - Which grades or sections have attendance issues
+   - Any students who were previously good but are declining
+   - Class-wide attendance patterns
+3. Smart recommendations: Provide specific, actionable suggestions based on the actual data
+
+Return ONLY valid JSON in this exact format:
+{
+  "atRiskStudents": ["Student Name 1", "Student Name 2"],
+  "trends": "Detailed analysis of attendance patterns found in the data",
+  "recommendations": ["Specific action 1", "Specific action 2", "Specific action 3"]
+}`
         }],
       }),
     });

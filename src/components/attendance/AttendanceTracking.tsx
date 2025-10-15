@@ -119,22 +119,40 @@ export const AttendanceTracking = ({ onUpdate }: AttendanceTrackingProps) => {
     setAttendance(newAttendance);
   };
 
+  // Group students by grade and section
+  const groupedStudents = students.reduce((acc, student) => {
+    const gradeNum = parseInt(student.grade);
+    const section = (student as any).section || '';
+    const key = `Grade ${gradeNum}${section ? ` - Section ${section}` : ''}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(student);
+    return acc;
+  }, {} as Record<string, typeof students>);
+
+  // Sort grade keys
+  const sortedGradeKeys = Object.keys(groupedStudents).sort((a, b) => {
+    const gradeA = parseInt(a.match(/\d+/)?.[0] || '0');
+    const gradeB = parseInt(b.match(/\d+/)?.[0] || '0');
+    if (gradeA !== gradeB) return gradeA - gradeB;
+    return a.localeCompare(b);
+  });
+
   return (
     <Card className="border-primary/20">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle className="text-2xl">Attendance Tracking</CardTitle>
-            <CardDescription>Mark daily attendance for students</CardDescription>
+            <CardTitle className="text-lg sm:text-2xl">Attendance Tracking</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Mark daily attendance for students</CardDescription>
           </div>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <CalendarIcon className="h-4 w-4" />
+              <Button variant="outline" className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+                <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                 {format(selectedDate, "PPP")}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0 z-50">
               <Calendar
                 mode="single"
                 selected={selectedDate}
@@ -144,79 +162,88 @@ export const AttendanceTracking = ({ onUpdate }: AttendanceTrackingProps) => {
           </Popover>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-2">
-          <Button onClick={markAllPresent} variant="outline" className="gap-2">
-            <Check className="h-4 w-4" />
+      <CardContent className="space-y-4 px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={markAllPresent} variant="outline" className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+            <Check className="h-3 w-3 sm:h-4 sm:w-4" />
             Mark All Present
           </Button>
           <Button
             onClick={handleSave}
             disabled={loading || Object.keys(attendance).length === 0}
-            className="bg-gradient-primary gap-2"
+            className="bg-gradient-primary gap-2 w-full sm:w-auto text-xs sm:text-sm"
           >
             Save Attendance
           </Button>
         </div>
 
-        <div className="space-y-2">
-          {students.map(student => (
-            <div
-              key={student.id}
-              className="flex items-center gap-4 p-4 rounded-lg border border-primary/20 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex-1">
-                <p className="font-medium">{student.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {student.index_number} • {student.grade}
-                </p>
-              </div>
+        {sortedGradeKeys.map((gradeKey) => (
+          <div key={gradeKey} className="space-y-3">
+            <h3 className="text-sm sm:text-base font-semibold text-primary border-b pb-2">{gradeKey}</h3>
+            <div className="space-y-2">
+              {groupedStudents[gradeKey].map(student => (
+                <div
+                  key={student.id}
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 rounded-lg border border-primary/20 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm sm:text-base truncate">{student.name}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Index: {student.index_number}
+                    </p>
+                  </div>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={attendance[student.id]?.status === 1 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleAttendanceChange(student.id, 1)}
-                  className={cn(
-                    attendance[student.id]?.status === 1 && "bg-secondary hover:bg-secondary"
-                  )}
-                >
-                  <Check className="h-4 w-4" />
-                  Present
-                </Button>
-                <Button
-                  variant={attendance[student.id]?.status === 0 ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleAttendanceChange(student.id, 0)}
-                  className={cn(
-                    attendance[student.id]?.status === 0 && "bg-destructive hover:bg-destructive"
-                  )}
-                >
-                  <X className="h-4 w-4" />
-                  Absent
-                </Button>
-              </div>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
+                    <div className="flex gap-2">
+                      <Button
+                        variant={attendance[student.id]?.status === 1 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleAttendanceChange(student.id, 1)}
+                        className={cn(
+                          "flex-1 sm:flex-none text-xs",
+                          attendance[student.id]?.status === 1 && "bg-secondary hover:bg-secondary"
+                        )}
+                      >
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        Present
+                      </Button>
+                      <Button
+                        variant={attendance[student.id]?.status === 0 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleAttendanceChange(student.id, 0)}
+                        className={cn(
+                          "flex-1 sm:flex-none text-xs",
+                          attendance[student.id]?.status === 0 && "bg-destructive hover:bg-destructive"
+                        )}
+                      >
+                        <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        Absent
+                      </Button>
+                    </div>
 
-              {attendance[student.id]?.status === 0 && (
-                <Select
-                  value={attendance[student.id]?.reason || "unknown"}
-                  onValueChange={(value) => handleReasonChange(student.id, value)}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Reason" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sick">Sick</SelectItem>
-                    <SelectItem value="travel">Travel</SelectItem>
-                    <SelectItem value="family">Family</SelectItem>
-                    <SelectItem value="unknown">Unknown</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+                    {attendance[student.id]?.status === 0 && (
+                      <Select
+                        value={attendance[student.id]?.reason || "unknown"}
+                        onValueChange={(value) => handleReasonChange(student.id, value)}
+                      >
+                        <SelectTrigger className="w-full sm:w-32 text-xs">
+                          <SelectValue placeholder="Reason" />
+                        </SelectTrigger>
+                        <SelectContent className="z-50">
+                          <SelectItem value="sick">Sick</SelectItem>
+                          <SelectItem value="travel">Travel</SelectItem>
+                          <SelectItem value="family">Family</SelectItem>
+                          <SelectItem value="unknown">Unknown</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   );
