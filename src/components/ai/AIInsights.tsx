@@ -58,22 +58,22 @@ export const AIInsights = () => {
   };
 
   return (
-    <Card className="border-accent/30 shadow-accent">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center shadow-accent">
-              <Brain className="w-6 h-6 text-white" />
+    <Card className="border-accent/30 shadow-accent overflow-hidden bg-gradient-card">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center shadow-accent shrink-0">
+              <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <CardTitle className="text-2xl">AI-Powered Insights</CardTitle>
-              <CardDescription>Predictive analytics and smart recommendations</CardDescription>
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl truncate">AI-Powered Insights</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Predictive analytics and recommendations</CardDescription>
             </div>
           </div>
           <Button
             onClick={generateInsights}
             disabled={loading}
-            className="bg-gradient-to-r from-accent to-primary hover:opacity-90 transition-opacity shadow-accent gap-2"
+            className="bg-gradient-to-r from-accent to-primary hover:opacity-90 transition-opacity shadow-accent gap-2 w-full sm:w-auto h-9 text-sm shrink-0"
           >
             <Brain className="h-4 w-4" />
             {loading ? "Analyzing..." : "Generate Insights"}
@@ -81,17 +81,17 @@ export const AIInsights = () => {
         </div>
       </CardHeader>
       {insights && (
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 pt-0">
           {/* At-Risk Prediction */}
           {insights.atRiskStudents && insights.atRiskStudents.length > 0 && (
-            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-destructive mb-2">At-Risk Students Detected</h3>
-                  <ul className="space-y-1 text-sm">
+            <div className="p-3 sm:p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-destructive mb-2 text-sm sm:text-base">At-Risk Students ({insights.atRiskStudents.length})</h3>
+                  <ul className="space-y-1 text-xs sm:text-sm">
                     {insights.atRiskStudents.map((student: string, i: number) => (
-                      <li key={i} className="text-muted-foreground">• {student}</li>
+                      <li key={i} className="text-muted-foreground break-words">• {student}</li>
                     ))}
                   </ul>
                 </div>
@@ -101,12 +101,12 @@ export const AIInsights = () => {
 
           {/* Attendance Trends */}
           {insights.trends && (
-            <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
-              <div className="flex items-start gap-3">
-                <TrendingDown className="h-5 w-5 text-accent mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2 text-accent">Attendance Trends</h3>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">{insights.trends}</p>
+            <div className="p-3 sm:p-4 rounded-lg bg-accent/10 border border-accent/20">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-accent mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold mb-2 text-accent text-sm sm:text-base">Attendance Trends & Analysis</h3>
+                  <div className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap break-words">{insights.trends}</div>
                 </div>
               </div>
             </div>
@@ -114,11 +114,11 @@ export const AIInsights = () => {
 
           {/* Recommendations */}
           {insights.recommendations && insights.recommendations.length > 0 && (
-            <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/20">
-              <h3 className="font-semibold mb-2 text-secondary">Smart Recommendations</h3>
-              <ul className="space-y-1 text-sm">
+            <div className="p-3 sm:p-4 rounded-lg bg-secondary/10 border border-secondary/20">
+              <h3 className="font-semibold mb-2 text-secondary text-sm sm:text-base">Smart Recommendations ({insights.recommendations.length})</h3>
+              <ul className="space-y-1 text-xs sm:text-sm">
                 {insights.recommendations.map((rec: string, i: number) => (
-                  <li key={i} className="text-muted-foreground">• {rec}</li>
+                  <li key={i} className="text-muted-foreground break-words">• {rec}</li>
                 ))}
               </ul>
             </div>

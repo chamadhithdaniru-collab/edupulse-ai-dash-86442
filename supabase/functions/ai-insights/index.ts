@@ -24,29 +24,44 @@ serve(async (req) => {
         model: 'google/gemini-2.5-flash',
         messages: [{
           role: 'user',
-          content: `You are an educational data analyst. Analyze this school attendance data and provide actionable insights.
+          content: `You are an educational data analyst for a Sri Lankan school (Grades 1-13). Analyze attendance data and provide detailed insights.
 
-STUDENT DATA:
+STUDENT DATA (${students.length} students):
 ${JSON.stringify(students, null, 2)}
 
-RECENT ATTENDANCE RECORDS (showing date, student_id, status where 1=present, 0=absent):
-${JSON.stringify(attendanceRecords?.slice(0, 100) || [], null, 2)}
+RECENT ATTENDANCE RECORDS (${attendanceRecords?.length || 0} records, 1=present, 0=absent):
+${JSON.stringify(attendanceRecords?.slice(0, 200) || [], null, 2)}
 
-Analyze the data carefully and provide:
-1. At-risk students: List students with attendance percentage < 75% OR showing declining attendance patterns
-2. Attendance trends: Identify patterns like:
-   - Which days have lower attendance
-   - Which grades or sections have attendance issues
-   - Any students who were previously good but are declining
-   - Class-wide attendance patterns
-3. Smart recommendations: Provide specific, actionable suggestions based on the actual data
+ANALYSIS REQUIREMENTS:
+
+1. INDIVIDUAL STUDENT ANALYSIS:
+   - Identify students with attendance < 75%
+   - Find students with declining patterns (e.g., was 90%+ now below 80%)
+   - Look for students marked as 'at_risk' status
+   - Check for recent absence patterns (consecutive absences, specific days)
+
+2. CLASS-WIDE TRENDS:
+   - Overall attendance percentage across all students
+   - Grade-level patterns (which grades have lower attendance?)
+   - Section-specific issues (e.g., Grade 10-A vs 10-B)
+   - Day-of-week patterns (are Mondays/Fridays worse?)
+   - Recent trends (improving or declining over time?)
+
+3. DETAILED RECOMMENDATIONS:
+   - Specific actions for at-risk students (name them)
+   - Grade/section-specific interventions
+   - Parent engagement strategies
+   - Early warning system suggestions
+   - Recognition for students with perfect/excellent attendance
 
 Return ONLY valid JSON in this exact format:
 {
-  "atRiskStudents": ["Student Name 1", "Student Name 2"],
-  "trends": "Detailed analysis of attendance patterns found in the data",
-  "recommendations": ["Specific action 1", "Specific action 2", "Specific action 3"]
-}`
+  "atRiskStudents": ["Full Name (Grade X-Y, Attendance: Z%, Reason)", ...],
+  "trends": "Detailed multi-paragraph analysis covering: overall attendance rate, grade-level patterns, day-of-week trends, recent changes, concerning patterns, and positive highlights",
+  "recommendations": ["Specific action 1 with student names", "Specific action 2 with data", "Specific action 3", ...]
+}
+
+IMPORTANT: Base everything on ACTUAL DATA. If there's insufficient data, clearly state that in the trends section.`
         }],
       }),
     });

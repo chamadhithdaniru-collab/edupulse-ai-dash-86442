@@ -114,93 +114,128 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
   };
 
   return (
-    <Card className="p-4 sm:p-6">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold mb-2">Camera Attendance</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Capture a classroom photo to automatically mark attendance using AI
-          </p>
+    <Card className="overflow-hidden bg-gradient-card border-primary/20 shadow-accent">
+      <div className="p-4 space-y-1 border-b border-border/50">
+        <div className="flex items-center gap-2">
+          <Camera className="h-5 w-5 text-primary shrink-0" />
+          <h3 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+            AI-Powered Attendance
+          </h3>
         </div>
-
+        <p className="text-xs text-muted-foreground">
+          Capture your attendance register - AI reads index numbers and marks (1=present, 0=absent)
+        </p>
+      </div>
+      
+      <div className="p-4 space-y-3">
         {!capturedImage ? (
-          <div className="space-y-4">
-            {!streaming ? (
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={startCamera} className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
-                  <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Start Camera
-                </Button>
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
-                  <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Upload Photo
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
+          <div className="space-y-3">
+            <div className="w-full rounded-lg overflow-hidden border-2 border-dashed border-primary/30 bg-muted/30 relative" style={{ aspectRatio: '4/3' }}>
+              {streaming ? (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
                 />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border-2 border-primary/20">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                  />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center gap-2">
+                  <Camera className="h-12 w-12 text-muted-foreground/50" />
+                  <p className="text-xs text-muted-foreground max-w-[200px]">
+                    Take a clear photo of your attendance register
+                  </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button onClick={capturePhoto} className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
-                    <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
-                    Capture Photo
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {!streaming ? (
+                <>
+                  <Button
+                    onClick={startCamera}
+                    disabled={loading}
+                    className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-sm h-10"
+                  >
+                    <Camera className="h-4 w-4" />
+                    <span>Start Camera</span>
                   </Button>
-                  <Button variant="outline" onClick={stopCamera} className="w-full sm:w-auto text-xs sm:text-sm">
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading}
+                    variant="outline"
+                    className="w-full gap-2 text-sm h-10"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>Upload</span>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={capturePhoto}
+                    disabled={loading}
+                    className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-sm h-10"
+                  >
+                    <Camera className="h-4 w-4" />
+                    <span>Capture</span>
+                  </Button>
+                  <Button
+                    onClick={stopCamera}
+                    disabled={loading}
+                    variant="outline"
+                    className="w-full gap-2 text-sm h-10"
+                  >
                     Cancel
                   </Button>
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border-2 border-primary/20">
-              <img 
-                src={capturedImage} 
-                alt="Captured classroom" 
+          <div className="space-y-3">
+            <div className="w-full rounded-lg overflow-hidden border-2 border-primary/30 bg-muted/30" style={{ aspectRatio: '4/3' }}>
+              <img
+                src={capturedImage}
+                alt="Captured register"
                 className="w-full h-full object-contain"
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button 
-                onClick={processAttendance} 
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={processAttendance}
                 disabled={loading}
-                className="gap-2 w-full sm:w-auto text-xs sm:text-sm"
+                className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-sm h-10"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                    Processing...
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Processing...</span>
                   </>
                 ) : (
-                  'Process Attendance'
+                  <>
+                    <Camera className="h-4 w-4" />
+                    <span>Process</span>
+                  </>
                 )}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
                 onClick={() => setCapturedImage(null)}
                 disabled={loading}
-                className="w-full sm:w-auto text-xs sm:text-sm"
+                variant="outline"
+                className="w-full gap-2 text-sm h-10"
               >
                 Retake
               </Button>
             </div>
           </div>
         )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
       </div>
     </Card>
   );

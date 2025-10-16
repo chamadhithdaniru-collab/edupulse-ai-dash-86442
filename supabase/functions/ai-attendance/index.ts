@@ -38,8 +38,10 @@ serve(async (req) => {
     }
 
     console.log(`Found ${students?.length || 0} students in database`);
+    
+    const formattedDate = date;
 
-    // Use AI to identify students in the image
+    // Use AI to read attendance register (OCR approach)
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -53,15 +55,46 @@ serve(async (req) => {
           content: [
             {
               type: 'text',
-              text: `Analyze this classroom photo and identify which students are present. 
-              
-Here is the list of all students with their index numbers:
-${students?.map(s => `- ${s.name} (Index: ${s.index_number})`).join('\n')}
+              text: `You are analyzing an attendance register photo from a Sri Lankan school. The register is a table/grid showing:
+- Student INDEX NUMBERS in the first column
+- Attendance marks in subsequent columns (1 = present, 0 = absent)
+- Date columns across the top
 
-Return a JSON array with ONLY the index numbers of students you can clearly identify as present in the photo.
-Format: {"present_students": ["index1", "index2", ...]}
+REGISTERED STUDENTS (only update these students):
+${students?.map(s => `- Index: ${s.index_number}, Name: ${s.name}, Grade: ${s.grade}${s.section ? '-' + s.section : ''}, ID: ${s.id}`).join('\n')}
 
-Be conservative - only include students you are confident about identifying.`
+CRITICAL INSTRUCTIONS:
+1. Carefully read the attendance register table/form in the image
+2. Find the column for date ${formattedDate} (or today's date column)
+3. For each row, read the INDEX NUMBER and the attendance mark (1 or 0) for that date
+4. Match the index numbers you read with the registered students list above
+5. ONLY include students that are in the registered list
+6. If an index number is not in the registered list, skip it
+7. If you cannot read the register clearly or find the date column, return an empty array
+
+IMPORTANT: Sri Lankan attendance registers typically show:
+- Index numbers as 4-6 digit numbers (like 12345, 67890)
+- Grid/table format with dates across the top
+- Marks "1" for present and "0" for absent in cells
+- Sometimes handwritten, sometimes printed
+
+Return ONLY a valid JSON array with this exact structure:
+[
+  {
+    "student_id": "the-student-uuid-from-above",
+    "index_number": "the-index-you-read",
+    "status": 1,
+    "date": "${formattedDate}"
+  }
+]
+
+Example valid response:
+[
+  {"student_id": "abc-123-def", "index_number": "12345", "status": 1, "date": "${formattedDate}"},
+  {"student_id": "ghi-456-jkl", "index_number": "67890", "status": 0, "date": "${formattedDate}"}
+]
+
+If the register is unclear or you cannot read it properly: []`
             },
             {
               type: 'image_url',
@@ -85,57 +118,65 @@ Be conservative - only include students you are confident about identifying.`
     
     console.log('AI response:', content);
     
-    let identifiedStudents;
+    let attendanceData: any[] = [];
     try {
-      const parsed = JSON.parse(content);
-      identifiedStudents = parsed.present_students || [];
+      // Try to parse as array directly
+      attendanceData = JSON.parse(content);
+      if (!Array.isArray(attendanceData)) {
+        throw new Error('Response is not an array');
+      }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
-      // Try to extract index numbers from the response
-      const indexMatches = content.match(/\d{3,}/g) || [];
-      identifiedStudents = indexMatches;
+      console.log('Raw content:', content);
+      attendanceData = [];
     }
 
-    console.log('Identified students:', identifiedStudents);
+    console.log('Parsed attendance data:', attendanceData);
 
-    // Update attendance for identified students
+    // Update attendance based on AI analysis
     const attendanceRecords = [];
     const errors = [];
+    let updatedCount = 0;
 
-    for (const student of students || []) {
-      const isPresent = identifiedStudents.includes(student.index_number);
+    for (const record of attendanceData) {
+      if (!record.student_id || record.status === undefined) {
+        continue;
+      }
       
       const { error: upsertError } = await supabase
         .from('attendance')
         .upsert({
-          student_id: student.id,
-          date: date,
-          status: isPresent ? 1 : 0,
-          absence_reason: isPresent ? null : 'Not identified in photo'
+          student_id: record.student_id,
+          date: record.date || date,
+          status: record.status,
+          absence_reason: record.status === 0 ? 'Marked absent in register' : null
         }, {
           onConflict: 'student_id,date'
         });
 
       if (upsertError) {
-        console.error(`Error updating attendance for ${student.name}:`, upsertError);
-        errors.push({ student: student.name, error: upsertError.message });
+        console.error(`Error updating attendance:`, upsertError);
+        errors.push({ index: record.index_number, error: upsertError.message });
       } else {
+        updatedCount++;
         attendanceRecords.push({
-          name: student.name,
-          index_number: student.index_number,
-          status: isPresent ? 'present' : 'absent'
+          index_number: record.index_number,
+          status: record.status === 1 ? 'present' : 'absent'
         });
       }
     }
 
-    console.log(`Attendance updated for ${attendanceRecords.length} students`);
+    console.log(`Attendance updated for ${updatedCount} students from register`);
 
     return new Response(JSON.stringify({
       success: true,
-      identified_count: identifiedStudents.length,
+      identified_count: updatedCount,
       total_students: students?.length || 0,
       attendance_records: attendanceRecords,
-      errors: errors.length > 0 ? errors : undefined
+      errors: errors.length > 0 ? errors : undefined,
+      message: updatedCount > 0 
+        ? `Successfully read and updated ${updatedCount} student records from register` 
+        : 'Could not read attendance marks from the register. Please ensure the image is clear and shows the attendance grid with index numbers and marks (1/0).'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

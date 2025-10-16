@@ -77,38 +77,37 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50">
-        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-primary">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-primary shrink-0">
               <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <div>
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
                 EduPulse
               </h1>
-              <p className="text-xs text-muted-foreground">Teacher Dashboard</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Teacher Dashboard</p>
             </div>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-full shrink-0"
+              className="rounded-full h-9 w-9"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4 sm:h-5 sm:w-5" /> : <Moon className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <Button variant="outline" onClick={handleSignOut} className="gap-1 sm:gap-2 text-xs sm:text-sm shrink-0">
-              <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-              <span className="sm:hidden">Exit</span>
+            <Button variant="outline" onClick={handleSignOut} className="gap-2 h-9 px-3">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline text-sm">Sign Out</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
+      <main className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
