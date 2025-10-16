@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Edit, Trash2, User } from "lucide-react";
+import { Edit, Trash2, User, Calendar } from "lucide-react";
+import { StudentAttendanceView } from "./StudentAttendanceView";
 
 interface Student {
   id: string;
@@ -21,11 +23,23 @@ interface StudentCardProps {
 }
 
 export const StudentCard = ({ student, onEdit, onDelete }: StudentCardProps) => {
+  const [showAttendance, setShowAttendance] = useState(false);
+  
   const statusColors = {
     active: "bg-secondary text-secondary-foreground",
     at_risk: "bg-destructive text-destructive-foreground",
     inactive: "bg-muted text-muted-foreground",
   };
+
+  if (showAttendance) {
+    return (
+      <StudentAttendanceView
+        studentId={student.id}
+        studentName={student.name}
+        onClose={() => setShowAttendance(false)}
+      />
+    );
+  }
 
   return (
     <Card className="hover:shadow-primary transition-all duration-300 hover:scale-105 border-primary/20">
@@ -71,24 +85,33 @@ export const StudentCard = ({ student, onEdit, onDelete }: StudentCardProps) => 
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 pt-2">
+        <div className="grid grid-cols-3 gap-2 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAttendance(true)}
+            className="gap-1"
+          >
+            <Calendar className="h-3 w-3" />
+            <span className="hidden sm:inline">View</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(student)}
-            className="flex-1 gap-2"
+            className="gap-1"
           >
             <Edit className="h-3 w-3" />
-            Edit
+            <span className="hidden sm:inline">Edit</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onDelete(student.id)}
-            className="flex-1 gap-2 text-destructive hover:text-destructive"
+            className="gap-1 text-destructive hover:text-destructive"
           >
             <Trash2 className="h-3 w-3" />
-            Delete
+            <span className="hidden sm:inline">Del</span>
           </Button>
         </div>
       </CardContent>

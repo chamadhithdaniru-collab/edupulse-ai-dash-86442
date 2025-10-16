@@ -21,18 +21,47 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
 
   const startCamera = async () => {
     try {
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera access not supported in this browser");
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
       });
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setStreaming(true);
+        // Wait for video to load metadata
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          setStreaming(true);
+        };
       }
-    } catch (error) {
+
+      toast({
+        title: "Camera Ready",
+        description: "Position your attendance register clearly in view",
+      });
+    } catch (error: any) {
       console.error('Error accessing camera:', error);
+      let errorMessage = "Could not access camera.";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Camera permission denied. Please allow camera access in browser settings.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "No camera found on this device.";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "Camera is already in use by another application.";
+      }
+      
       toast({
         title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
+        description: errorMessage,
         variant: "destructive",
       });
     }

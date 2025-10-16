@@ -10,6 +10,8 @@ import { StudentsList } from "@/components/students/StudentsList";
 import { AttendanceTracking } from "@/components/attendance/AttendanceTracking";
 import { CameraAttendance } from "@/components/attendance/CameraAttendance";
 import { AIInsights } from "@/components/ai/AIInsights";
+import { AttendanceCharts } from "@/components/attendance/AttendanceCharts";
+import { BulkUpload } from "@/components/students/BulkUpload";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -136,8 +138,14 @@ const Dashboard = () => {
         {/* AI Insights */}
         <AIInsights />
 
+        {/* Attendance Charts */}
+        <AttendanceCharts />
+
         {/* Camera Attendance */}
         <CameraAttendance selectedDate={new Date()} onUpdate={loadStats} />
+
+        {/* Bulk Upload */}
+        <BulkUpload onSuccess={loadStats} />
 
         {/* Attendance Tracking */}
         <AttendanceTracking onUpdate={loadStats} />

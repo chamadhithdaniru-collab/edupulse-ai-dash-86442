@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { VoiceInput } from "./VoiceInput";
 
 interface Student {
   id: string;
@@ -137,7 +138,14 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="name">Name</Label>
+              <VoiceInput
+                field="name"
+                label=""
+                onTranscript={(text) => setFormData({ ...formData, name: text })}
+              />
+            </div>
             <Input
               id="name"
               value={formData.name}
