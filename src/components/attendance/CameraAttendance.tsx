@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Upload, Loader2 } from "lucide-react";
+import { Camera, Upload, Loader2, X, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -16,57 +16,68 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
   const [loading, setLoading] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [streaming, setStreaming] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   const startCamera = async () => {
     try {
-      console.log('Starting camera...');
+      console.log('🎥 Starting camera...');
       
-      // Check if getUserMedia is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("Camera access not supported in this browser");
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      const constraints = {
+        video: {
           facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      });
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 }
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
       
-      console.log('Camera stream obtained:', stream);
+      console.log('✅ Camera stream obtained');
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute('playsinline', 'true');
         
-        // Ensure video plays
-        try {
-          await videoRef.current.play();
-          setStreaming(true);
-          console.log('Camera started successfully');
-          
-          toast({
-            title: "Camera Ready",
-            description: "Position your attendance register clearly in view",
-          });
-        } catch (playError) {
-          console.error('Error playing video:', playError);
-          throw new Error("Could not start video playback");
-        }
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = async () => {
+          try {
+            await videoRef.current?.play();
+            setStreaming(true);
+            console.log('▶️ Video playing');
+            
+            toast({
+              title: "📸 Camera Ready",
+              description: "Position your attendance register in view",
+            });
+          } catch (playError) {
+            console.error('Play error:', playError);
+            throw new Error("Could not start video playback");
+          }
+        };
       }
     } catch (error: any) {
-      console.error('Error accessing camera:', error);
+      console.error('❌ Camera error:', error);
       let errorMessage = "Could not access camera.";
       
       if (error.name === 'NotAllowedError') {
-        errorMessage = "Camera permission denied. Please allow camera access in browser settings.";
+        errorMessage = "Camera permission denied. Please allow camera access.";
       } else if (error.name === 'NotFoundError') {
         errorMessage = "No camera found on this device.";
       } else if (error.name === 'NotReadableError') {
-        errorMessage = "Camera is already in use by another application.";
+        errorMessage = "Camera is in use by another app.";
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -82,26 +93,45 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
   };
 
   const stopCamera = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-      setStreaming(false);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('🛑 Camera track stopped');
+      });
+      streamRef.current = null;
     }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setStreaming(false);
   };
 
   const capturePhoto = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
       const ctx = canvas.getContext('2d');
+      
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0);
-        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        const imageData = canvas.toDataURL('image/jpeg', 0.9);
         setCapturedImage(imageData);
         stopCamera();
+        
+        toast({
+          title: "Photo Captured",
+          description: "Review and process attendance",
+        });
       }
+    } else {
+      toast({
+        title: "Error",
+        description: "Camera not ready, please wait",
+        variant: "destructive",
+      });
     }
   };
 
@@ -111,6 +141,10 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
       const reader = new FileReader();
       reader.onload = (e) => {
         setCapturedImage(e.target?.result as string);
+        toast({
+          title: "Image Uploaded",
+          description: "Review and process attendance",
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -138,7 +172,7 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
       if (error) throw error;
 
       toast({
-        title: "Attendance Updated",
+        title: "✅ Attendance Updated",
         description: `Identified ${data.identified_count} out of ${data.total_students} students.`,
       });
 
@@ -157,60 +191,83 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
   };
 
   return (
-    <Card className="overflow-hidden bg-gradient-card border-primary/20 shadow-accent">
-      <div className="p-4 space-y-1 border-b border-border/50">
+    <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 backdrop-blur-sm shadow-lg">
+      <div className="p-3 sm:p-4 space-y-1 border-b border-primary/20 bg-gradient-to-r from-primary/10 to-secondary/10">
         <div className="flex items-center gap-2">
-          <Camera className="h-5 w-5 text-primary shrink-0" />
-          <h3 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-            AI-Powered Attendance
-          </h3>
+          <div className="p-2 rounded-lg bg-gradient-primary">
+            <Camera className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base sm:text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+              AI Camera Attendance
+            </h3>
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+              Scan register: Index numbers + marks (1=present, 0=absent)
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Capture your attendance register - AI reads index numbers and marks (1=present, 0=absent)
-        </p>
       </div>
       
-      <div className="p-4 space-y-3">
+      <div className="p-3 sm:p-4 space-y-3">
         {!capturedImage ? (
           <div className="space-y-3">
-            <div className="w-full rounded-lg overflow-hidden border-2 border-dashed border-primary/30 bg-muted/30 relative" style={{ minHeight: '320px', maxHeight: '480px' }}>
+            {/* Camera/Upload Container */}
+            <div className="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-primary/40 bg-gradient-to-br from-muted/50 to-muted/30 shadow-inner" 
+                 style={{ aspectRatio: '4/3', minHeight: '240px', maxHeight: '400px' }}>
               {streaming ? (
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover absolute inset-0"
-                  style={{ display: 'block', minHeight: '320px' }}
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center gap-2">
-                  <Camera className="h-12 w-12 text-muted-foreground/50" />
-                  <p className="text-xs text-muted-foreground max-w-[200px]">
-                    Take a clear photo of your attendance register
-                  </p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6 text-center gap-3">
+                  <div className="p-3 sm:p-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-sm">
+                    <Camera className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm font-medium text-foreground">
+                      Capture Attendance Register
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground max-w-[200px]">
+                      Take a clear photo showing index numbers and attendance marks
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {streaming && (
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <div className="px-2 py-1 rounded-full bg-red-500/90 backdrop-blur-sm flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                    <span className="text-[10px] font-medium text-white">LIVE</span>
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2">
               {!streaming ? (
                 <>
                   <Button
                     onClick={startCamera}
                     disabled={loading}
-                    className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-sm h-10"
+                    className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all text-xs sm:text-sm h-10 sm:h-11"
                   >
-                    <Camera className="h-4 w-4" />
-                    <span>Start Camera</span>
+                    <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span>Open Camera</span>
                   </Button>
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={loading}
                     variant="outline"
-                    className="w-full gap-2 text-sm h-10"
+                    className="w-full gap-2 border-primary/40 hover:bg-primary/10 text-xs sm:text-sm h-10 sm:h-11"
                   >
-                    <Upload className="h-4 w-4" />
-                    <span>Upload</span>
+                    <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span>Upload Image</span>
                   </Button>
                 </>
               ) : (
@@ -218,18 +275,19 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
                   <Button
                     onClick={capturePhoto}
                     disabled={loading}
-                    className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-sm h-10"
+                    className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-white shadow-lg text-xs sm:text-sm h-10 sm:h-11"
                   >
-                    <Camera className="h-4 w-4" />
-                    <span>Capture</span>
+                    <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span>Capture Photo</span>
                   </Button>
                   <Button
                     onClick={stopCamera}
                     disabled={loading}
                     variant="outline"
-                    className="w-full gap-2 text-sm h-10"
+                    className="w-full gap-2 border-destructive/40 hover:bg-destructive/10 text-destructive text-xs sm:text-sm h-10 sm:h-11"
                   >
-                    Cancel
+                    <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span>Cancel</span>
                   </Button>
                 </>
               )}
@@ -237,27 +295,37 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="w-full rounded-lg overflow-hidden border-2 border-primary/30 bg-muted/30" style={{ minHeight: '320px', maxHeight: '480px' }}>
+            {/* Captured Image Preview */}
+            <div className="relative w-full rounded-xl overflow-hidden border-2 border-primary/40 bg-muted shadow-lg" 
+                 style={{ aspectRatio: '4/3', minHeight: '240px', maxHeight: '400px' }}>
               <img
                 src={capturedImage}
                 alt="Captured register"
                 className="w-full h-full object-contain"
               />
+              <div className="absolute top-3 right-3">
+                <div className="px-2 py-1 rounded-full bg-green-500/90 backdrop-blur-sm flex items-center gap-1.5">
+                  <Check className="w-3 h-3 text-white" />
+                  <span className="text-[10px] font-medium text-white">CAPTURED</span>
+                </div>
+              </div>
             </div>
+
+            {/* Process Buttons */}
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={processAttendance}
                 disabled={loading}
-                className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-sm h-10"
+                className="w-full gap-2 bg-gradient-primary hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all text-xs sm:text-sm h-10 sm:h-11"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                     <span>Processing...</span>
                   </>
                 ) : (
                   <>
-                    <Camera className="h-4 w-4" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     <span>Process</span>
                   </>
                 )}
@@ -266,17 +334,20 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
                 onClick={() => setCapturedImage(null)}
                 disabled={loading}
                 variant="outline"
-                className="w-full gap-2 text-sm h-10"
+                className="w-full gap-2 border-primary/40 hover:bg-primary/10 text-xs sm:text-sm h-10 sm:h-11"
               >
-                Retake
+                <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>Retake</span>
               </Button>
             </div>
           </div>
         )}
+
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          capture="environment"
           onChange={handleFileUpload}
           className="hidden"
         />
