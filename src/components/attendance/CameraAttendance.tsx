@@ -173,15 +173,15 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
       <div className="p-4 space-y-3">
         {!capturedImage ? (
           <div className="space-y-3">
-            <div className="w-full rounded-lg overflow-hidden border-2 border-dashed border-primary/30 bg-muted/30 relative min-h-[240px] md:min-h-[320px]">
+            <div className="w-full rounded-lg overflow-hidden border-2 border-dashed border-primary/30 bg-muted/30 relative" style={{ minHeight: '320px', maxHeight: '480px' }}>
               {streaming ? (
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
-                  style={{ minHeight: '240px' }}
+                  className="w-full h-full object-cover absolute inset-0"
+                  style={{ display: 'block', minHeight: '320px' }}
                 />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center gap-2">
@@ -237,7 +237,7 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="w-full rounded-lg overflow-hidden border-2 border-primary/30 bg-muted/30" style={{ aspectRatio: '4/3' }}>
+            <div className="w-full rounded-lg overflow-hidden border-2 border-primary/30 bg-muted/30" style={{ minHeight: '320px', maxHeight: '480px' }}>
               <img
                 src={capturedImage}
                 alt="Captured register"
