@@ -21,6 +21,8 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
 
   const startCamera = async () => {
     try {
+      console.log('Starting camera...');
+      
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Camera access not supported in this browser");
@@ -29,24 +31,32 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         } 
       });
       
+      console.log('Camera stream obtained:', stream);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        // Wait for video to load metadata
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
+        videoRef.current.setAttribute('playsinline', 'true');
+        
+        // Ensure video plays
+        try {
+          await videoRef.current.play();
           setStreaming(true);
-        };
+          console.log('Camera started successfully');
+          
+          toast({
+            title: "Camera Ready",
+            description: "Position your attendance register clearly in view",
+          });
+        } catch (playError) {
+          console.error('Error playing video:', playError);
+          throw new Error("Could not start video playback");
+        }
       }
-
-      toast({
-        title: "Camera Ready",
-        description: "Position your attendance register clearly in view",
-      });
     } catch (error: any) {
       console.error('Error accessing camera:', error);
       let errorMessage = "Could not access camera.";
@@ -57,6 +67,8 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
         errorMessage = "No camera found on this device.";
       } else if (error.name === 'NotReadableError') {
         errorMessage = "Camera is already in use by another application.";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
       toast({
@@ -64,6 +76,8 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
         description: errorMessage,
         variant: "destructive",
       });
+      
+      stopCamera();
     }
   };
 
@@ -159,7 +173,7 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
       <div className="p-4 space-y-3">
         {!capturedImage ? (
           <div className="space-y-3">
-            <div className="w-full rounded-lg overflow-hidden border-2 border-dashed border-primary/30 bg-muted/30 relative" style={{ aspectRatio: '4/3' }}>
+            <div className="w-full rounded-lg overflow-hidden border-2 border-dashed border-primary/30 bg-muted/30 relative min-h-[240px] md:min-h-[320px]">
               {streaming ? (
                 <video
                   ref={videoRef}
@@ -167,6 +181,7 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
                   playsInline
                   muted
                   className="w-full h-full object-cover"
+                  style={{ minHeight: '240px' }}
                 />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center gap-2">

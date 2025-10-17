@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Check, X } from "lucide-react";
+import { CalendarIcon, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ export const AttendanceTracking = ({ onUpdate }: AttendanceTrackingProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [attendance, setAttendance] = useState<Record<string, { status: number; reason?: string }>>({});
   const [loading, setLoading] = useState(false);
+  const [expandedGrades, setExpandedGrades] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -119,6 +120,26 @@ export const AttendanceTracking = ({ onUpdate }: AttendanceTrackingProps) => {
     setAttendance(newAttendance);
   };
 
+  const toggleGrade = (gradeKey: string) => {
+    setExpandedGrades(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(gradeKey)) {
+        newSet.delete(gradeKey);
+      } else {
+        newSet.add(gradeKey);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAll = () => {
+    setExpandedGrades(new Set(sortedGradeKeys));
+  };
+
+  const collapseAll = () => {
+    setExpandedGrades(new Set());
+  };
+
   // Group students by grade and section
   const groupedStudents = students.reduce((acc, student) => {
     const gradeNum = parseInt(student.grade);
@@ -175,13 +196,35 @@ export const AttendanceTracking = ({ onUpdate }: AttendanceTrackingProps) => {
           >
             Save Attendance
           </Button>
+          <Button onClick={expandAll} variant="outline" className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+            Expand All
+          </Button>
+          <Button onClick={collapseAll} variant="outline" className="gap-2 w-full sm:w-auto text-xs sm:text-sm">
+            Collapse All
+          </Button>
         </div>
 
-        {sortedGradeKeys.map((gradeKey) => (
-          <div key={gradeKey} className="space-y-3">
-            <h3 className="text-sm sm:text-base font-semibold text-primary border-b pb-2">{gradeKey}</h3>
-            <div className="space-y-2">
-              {groupedStudents[gradeKey].map(student => (
+        {sortedGradeKeys.map((gradeKey) => {
+          const isExpanded = expandedGrades.has(gradeKey);
+          const studentCount = groupedStudents[gradeKey].length;
+          
+          return (
+            <div key={gradeKey} className="space-y-3 border rounded-lg p-3">
+              <button
+                onClick={() => toggleGrade(gradeKey)}
+                className="w-full flex items-center justify-between text-sm sm:text-base font-semibold text-primary hover:bg-muted/50 p-2 rounded transition-colors"
+              >
+                <span>{gradeKey} ({studentCount} students)</span>
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+              
+              {isExpanded && (
+                <div className="space-y-2 mt-2">
+                  {groupedStudents[gradeKey].map(student => (
                 <div
                   key={student.id}
                   className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 rounded-lg border border-primary/20 hover:bg-muted/50 transition-colors"
@@ -240,10 +283,12 @@ export const AttendanceTracking = ({ onUpdate }: AttendanceTrackingProps) => {
                     )}
                   </div>
                 </div>
-              ))}
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );
