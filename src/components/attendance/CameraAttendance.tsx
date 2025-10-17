@@ -38,35 +38,55 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
       const constraints = {
         video: {
           facingMode: 'environment',
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 }
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         }
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
       
-      console.log('✅ Camera stream obtained');
+      console.log('✅ Camera stream obtained:', stream.getVideoTracks()[0].label);
       
       if (videoRef.current) {
+        // Set stream and immediately try to play
         videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        videoRef.current.playsInline = true;
         
-        // Wait for video to be ready
-        videoRef.current.onloadedmetadata = async () => {
-          try {
-            await videoRef.current?.play();
-            setStreaming(true);
-            console.log('▶️ Video playing');
-            
-            toast({
-              title: "📸 Camera Ready",
-              description: "Position your attendance register in view",
-            });
-          } catch (playError) {
-            console.error('Play error:', playError);
-            throw new Error("Could not start video playback");
-          }
-        };
+        // Small delay to ensure stream is attached
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        try {
+          await videoRef.current.play();
+          setStreaming(true);
+          console.log('▶️ Video playing successfully');
+          
+          toast({
+            title: "📸 Camera Ready",
+            description: "Position your attendance register in view",
+          });
+        } catch (playError) {
+          console.error('Play error:', playError);
+          
+          // Try alternative approach - let user interaction trigger play
+          const playOnInteraction = async () => {
+            try {
+              await videoRef.current?.play();
+              setStreaming(true);
+              console.log('▶️ Video playing after interaction');
+              toast({
+                title: "📸 Camera Ready",
+                description: "Position your attendance register in view",
+              });
+            } catch (e) {
+              throw new Error("Could not start video playback");
+            }
+          };
+          
+          // Wait for any user interaction
+          document.addEventListener('click', playOnInteraction, { once: true });
+        }
       }
     } catch (error: any) {
       console.error('❌ Camera error:', error);
