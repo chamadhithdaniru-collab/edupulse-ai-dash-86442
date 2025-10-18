@@ -232,17 +232,27 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
         {!capturedImage ? (
           <div className="space-y-3">
             {/* Camera/Upload Container */}
-            <div className="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-primary/40 bg-gradient-to-br from-muted/50 to-muted/30 shadow-inner" 
-                 style={{ aspectRatio: '4/3', minHeight: '240px', maxHeight: '400px' }}>
-              {streaming ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
+            <div className="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-primary/40 bg-gradient-to-br from-muted/50 to-muted/30 shadow-inner aspect-video min-h-[240px] max-h-[400px]">
+              {streaming && (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover block"
+                    style={{ display: 'block' }}
+                  />
+                  <div className="absolute top-3 right-3 z-10">
+                    <div className="px-2 py-1 rounded-full bg-red-500/90 backdrop-blur-sm flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                      <span className="text-[10px] font-medium text-white">LIVE</span>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {!streaming && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6 text-center gap-3">
                   <div className="p-3 sm:p-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-sm">
                     <Camera className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
@@ -254,15 +264,6 @@ export const CameraAttendance = ({ selectedDate, onUpdate }: CameraAttendancePro
                     <p className="text-[10px] sm:text-xs text-muted-foreground max-w-[200px]">
                       Take a clear photo showing index numbers and attendance marks
                     </p>
-                  </div>
-                </div>
-              )}
-              
-              {streaming && (
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <div className="px-2 py-1 rounded-full bg-red-500/90 backdrop-blur-sm flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    <span className="text-[10px] font-medium text-white">LIVE</span>
                   </div>
                 </div>
               )}

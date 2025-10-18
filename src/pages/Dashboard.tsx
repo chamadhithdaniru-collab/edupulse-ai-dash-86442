@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Activity, Users, TrendingUp, AlertTriangle, LogOut, Moon, Sun, Plus } from "lucide-react";
+import { Activity, Users, TrendingUp, AlertTriangle, LogOut, Moon, Sun } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -12,11 +12,15 @@ import { CameraAttendance } from "@/components/attendance/CameraAttendance";
 import { AIInsights } from "@/components/ai/AIInsights";
 import { AttendanceCharts } from "@/components/attendance/AttendanceCharts";
 import { BulkUpload } from "@/components/students/BulkUpload";
+import { EducationalInsights } from "@/components/dashboard/EducationalInsights";
+import { LanguageSelector } from "@/components/dashboard/LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -76,7 +80,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-x-hidden">
       {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-sm bg-background/95 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
@@ -86,12 +90,13 @@ const Dashboard = () => {
             </div>
             <div className="min-w-0">
               <h1 className="text-base sm:text-lg md:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
-                EduPulse
+                {t('app.title')}
               </h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Teacher Dashboard</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">{t('app.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <LanguageSelector />
             <Button
               variant="outline"
               size="icon"
@@ -102,38 +107,41 @@ const Dashboard = () => {
             </Button>
             <Button variant="outline" onClick={handleSignOut} className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3">
               <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline text-xs sm:text-sm">Sign Out</span>
+              <span className="hidden sm:inline text-xs sm:text-sm">{t('header.signOut')}</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-7xl">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-7xl pb-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           <StatsCard
-            title="Total Students"
+            title={t('stats.totalStudents')}
             value={stats.totalStudents}
             icon={Users}
             gradient="from-primary to-secondary"
             loading={loading}
           />
           <StatsCard
-            title="Average Attendance"
+            title={t('stats.avgAttendance')}
             value={`${stats.averageAttendance}%`}
             icon={TrendingUp}
             gradient="from-secondary to-accent"
             loading={loading}
           />
           <StatsCard
-            title="At-Risk Students"
+            title={t('stats.atRisk')}
             value={stats.atRiskCount}
             icon={AlertTriangle}
             gradient="from-accent to-destructive"
             loading={loading}
           />
         </div>
+
+        {/* Educational Insights */}
+        <EducationalInsights />
 
         {/* AI Insights */}
         <AIInsights />
