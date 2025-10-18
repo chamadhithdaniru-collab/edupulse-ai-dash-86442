@@ -113,6 +113,23 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Quick Navigation */}
+      <div className="sticky top-[60px] z-40 bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm">
+        <div className="container mx-auto px-3 sm:px-4 py-2">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            <Button variant="outline" size="sm" onClick={() => document.getElementById('insights')?.scrollIntoView({ behavior: 'smooth' })} className="text-xs shrink-0">
+              📊 Insights
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => document.getElementById('camera')?.scrollIntoView({ behavior: 'smooth' })} className="text-xs shrink-0">
+              📸 Camera
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => document.getElementById('students')?.scrollIntoView({ behavior: 'smooth' })} className="text-xs shrink-0">
+              👥 Students
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-7xl pb-8">
         {/* Stats Grid */}
@@ -141,7 +158,9 @@ const Dashboard = () => {
         </div>
 
         {/* Educational Insights */}
-        <EducationalInsights />
+        <div id="insights">
+          <EducationalInsights />
+        </div>
 
         {/* AI Insights */}
         <AIInsights />
@@ -150,7 +169,9 @@ const Dashboard = () => {
         <AttendanceCharts />
 
         {/* Camera Attendance */}
-        <CameraAttendance selectedDate={new Date()} onUpdate={loadStats} />
+        <div id="camera">
+          <CameraAttendance selectedDate={new Date()} onUpdate={loadStats} />
+        </div>
 
         {/* Bulk Upload */}
         <BulkUpload onSuccess={loadStats} />
@@ -159,7 +180,9 @@ const Dashboard = () => {
         <AttendanceTracking onUpdate={loadStats} />
 
         {/* Students List */}
-        <StudentsList onUpdate={loadStats} />
+        <div id="students">
+          <StudentsList onUpdate={loadStats} />
+        </div>
       </main>
     </div>
   );

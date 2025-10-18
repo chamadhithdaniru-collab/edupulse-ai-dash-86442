@@ -115,12 +115,15 @@ export const AIInsights = () => {
           {/* Recommendations */}
           {insights.recommendations && insights.recommendations.length > 0 && (
             <div className="p-3 sm:p-4 rounded-lg bg-secondary/10 border border-secondary/20">
-              <h3 className="font-semibold mb-2 text-secondary text-sm sm:text-base">Smart Recommendations ({insights.recommendations.length})</h3>
-              <ul className="space-y-1 text-xs sm:text-sm">
+              <h3 className="font-semibold mb-3 text-secondary text-sm sm:text-base">Smart Recommendations ({insights.recommendations.length})</h3>
+              <div className="space-y-3">
                 {insights.recommendations.map((rec: string, i: number) => (
-                  <li key={i} className="text-muted-foreground break-words">• {rec}</li>
+                  <div key={i} className="flex gap-2">
+                    <span className="text-secondary font-bold shrink-0">{i + 1}.</span>
+                    <p className="text-muted-foreground text-xs sm:text-sm break-words leading-relaxed">{rec.replace(/^\*\*|\*\*$/g, '').replace(/\*\*/g, '')}</p>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </CardContent>
