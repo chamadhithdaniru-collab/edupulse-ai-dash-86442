@@ -15,6 +15,12 @@ const translations: Record<Language, Record<string, string>> = {
     'app.subtitle': 'Teacher Dashboard',
     'header.signOut': 'Sign Out',
     
+    // Navigation
+    'nav.dashboard': 'Dashboard',
+    'nav.students': 'Students',
+    'nav.attendance': 'Attendance',
+    'nav.insights': 'Insights',
+    
     // Stats
     'stats.totalStudents': 'Total Students',
     'stats.avgAttendance': 'Average Attendance',
@@ -45,6 +51,11 @@ const translations: Record<Language, Record<string, string>> = {
     'app.subtitle': 'ගුරු පාලක පුවරුව',
     'header.signOut': 'වරන්න',
     
+    'nav.dashboard': 'මුල් පිටුව',
+    'nav.students': 'සිසුන්',
+    'nav.attendance': 'පැමිණීම',
+    'nav.insights': 'තීක්ෂණ',
+    
     'stats.totalStudents': 'සිසුන් සංඛ්‍යාව',
     'stats.avgAttendance': 'සාමාන්‍ය පැමිණීම',
     'stats.atRisk': 'අවදානම් සිසුන්',
@@ -71,6 +82,11 @@ const translations: Record<Language, Record<string, string>> = {
     'app.subtitle': 'ஆசிரியர் டாஷ்போர்டு',
     'header.signOut': 'வெளியேறு',
     
+    'nav.dashboard': 'டாஷ்போர்டு',
+    'nav.students': 'மாணவர்கள்',
+    'nav.attendance': 'வருகை',
+    'nav.insights': 'நுண்ணறிவுகள்',
+    
     'stats.totalStudents': 'மொத்த மாணவர்கள்',
     'stats.avgAttendance': 'சராசரி வருகை',
     'stats.atRisk': 'அபாயத்தில் உள்ள மாணவர்கள்',
@@ -96,6 +112,11 @@ const translations: Record<Language, Record<string, string>> = {
     'app.title': 'EduPulse',
     'app.subtitle': 'استاذ ڈیش بورڈ',
     'header.signOut': 'باہر نکلیں',
+    
+    'nav.dashboard': 'ڈیش بورڈ',
+    'nav.students': 'طلباء',
+    'nav.attendance': 'حاضری',
+    'nav.insights': 'بصیرت',
     
     'stats.totalStudents': 'کل طالب علم',
     'stats.avgAttendance': 'اوسط حاضری',

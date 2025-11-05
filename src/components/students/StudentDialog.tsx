@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { VoiceInput } from "./VoiceInput";
+import { encryptData } from "@/utils/encryption";
 
 interface Student {
   id: string;
@@ -74,12 +75,15 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
     setLoading(true);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       let photoUrl = student?.photo_url;
 
-      // Upload photo if selected
+      // Upload photo if selected with user-specific folder
       if (photoFile) {
         const fileExt = photoFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
+        const fileName = `${user.id}/${Math.random()}.${fileExt}`;
         const { error: uploadError, data } = await supabase.storage
           .from('student-photos')
           .upload(fileName, photoFile);
@@ -93,9 +97,16 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
         photoUrl = publicUrl;
       }
 
+      // Encrypt sensitive data
+      const encryptedName = await encryptData(formData.name);
+      const encryptedIndexNumber = await encryptData(formData.index_number);
+
       const studentData = {
         ...formData,
+        name: encryptedName,
+        index_number: encryptedIndexNumber,
         photo_url: photoUrl,
+        user_id: user.id,
       };
 
       if (student) {
@@ -116,6 +127,7 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
         description: `Student ${student ? 'updated' : 'added'} successfully`,
       });
       onSave();
+      onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error",
