@@ -12,7 +12,30 @@ serve(async (req) => {
   }
 
   try {
-    const { imageData, date } = await req.json();
+    const body = await req.json();
+
+    // Validate inputs
+    if (!body.imageData || typeof body.imageData !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid imageData - must be a base64 string' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    if (!body.imageData.startsWith('data:image/')) {
+      return new Response(JSON.stringify({ error: 'imageData must be a base64 image (data:image/...)' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    if (body.imageData.length > 10000000) { // 10MB limit
+      return new Response(JSON.stringify({ error: 'Image too large (max 10MB)' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    if (!body.date || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+      return new Response(JSON.stringify({ error: 'Invalid date format (use YYYY-MM-DD)' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const { imageData, date } = body;
     
     console.log('Processing attendance image for date:', date);
     

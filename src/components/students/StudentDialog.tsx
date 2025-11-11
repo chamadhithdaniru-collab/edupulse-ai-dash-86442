@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { VoiceInput } from "./VoiceInput";
-import { encryptData } from "@/utils/encryption";
 
 interface Student {
   id: string;
@@ -97,14 +96,8 @@ export const StudentDialog = ({ open, onOpenChange, student, onSave }: StudentDi
         photoUrl = publicUrl;
       }
 
-      // Encrypt sensitive data
-      const encryptedName = await encryptData(formData.name);
-      const encryptedIndexNumber = await encryptData(formData.index_number);
-
       const studentData = {
         ...formData,
-        name: encryptedName,
-        index_number: encryptedIndexNumber,
         photo_url: photoUrl,
         user_id: user.id,
       };

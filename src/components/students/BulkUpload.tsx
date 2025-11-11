@@ -2,17 +2,13 @@ import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { PasswordVerification } from "./PasswordVerification";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { encryptData } from "@/utils/encryption";
 
 export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const downloadTemplate = () => {
@@ -33,21 +29,12 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
-    // Show password verification dialog
-    setPendingFile(file);
-    setShowPasswordDialog(true);
-  };
-
-  const processFileUpload = async () => {
-    if (!pendingFile) return;
 
     setLoading(true);
     setResults(null);
-    setShowPasswordDialog(false);
 
     try {
-      const text = await pendingFile.text();
+      const text = await file.text();
       const lines = text.split("\n").filter(line => line.trim());
       const headers = lines[0].split(",").map(h => h.trim());
 
@@ -78,15 +65,11 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
         }
 
         try {
-          // Encrypt sensitive data
-          const encryptedName = await encryptData(studentData.name);
-          const encryptedIndexNumber = await encryptData(studentData.index_number);
-
           // Insert student with user_id
           const { error } = await supabase.from("students").insert([{
             user_id: user.id,
-            name: encryptedName,
-            index_number: encryptedIndexNumber,
+            name: studentData.name,
+            index_number: studentData.index_number,
             grade: studentData.grade,
             section: studentData.section || null,
             specialty: studentData.specialty || null,
@@ -99,8 +82,8 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
           } else {
             success++;
           }
-        } catch (encryptError: any) {
-          errors.push(`Row ${i + 1}: Encryption failed - ${encryptError.message}`);
+        } catch (error: any) {
+          errors.push(`Row ${i + 1}: ${error.message}`);
           failed++;
         }
       }
@@ -127,20 +110,7 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
   };
 
   return (
-    <>
-      <PasswordVerification
-        open={showPasswordDialog}
-        onVerified={processFileUpload}
-        onCancel={() => {
-          setShowPasswordDialog(false);
-          setPendingFile(null);
-          if (fileInputRef.current) fileInputRef.current.value = "";
-        }}
-        title="Verify Security Password"
-        description="Please enter your security password to upload student data"
-      />
-      
-      <Card className="border-primary/20">
+    <Card className="border-primary/20">
         <CardHeader>
         <div className="flex items-center gap-2">
           <Upload className="h-5 w-5 text-primary" />
@@ -223,6 +193,5 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
         </div>
       </CardContent>
     </Card>
-    </>
   );
 };
