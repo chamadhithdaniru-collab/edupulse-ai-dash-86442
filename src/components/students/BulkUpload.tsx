@@ -34,68 +34,116 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
     setResults(null);
 
     try {
+      // Get current user first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Please log in to upload students");
+      }
+
       const text = await file.text();
       const lines = text.split("\n").filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        throw new Error("CSV file is empty or has no data rows");
+      }
+
       const headers = lines[0].split(",").map(h => h.trim());
+      
+      // Validate headers
+      if (!headers.includes("name") || !headers.includes("index_number") || !headers.includes("grade")) {
+        throw new Error("CSV must have headers: name, index_number, grade");
+      }
 
       let success = 0;
       let failed = 0;
       const errors: string[] = [];
+      
+      // Process in batches of 100 for better performance
+      const BATCH_SIZE = 100;
+      const totalRows = lines.length - 1;
+      
+      for (let batchStart = 1; batchStart < lines.length; batchStart += BATCH_SIZE) {
+        const batchEnd = Math.min(batchStart + BATCH_SIZE, lines.length);
+        const batchData: any[] = [];
+        
+        // Prepare batch
+        for (let i = batchStart; i < batchEnd; i++) {
+          const values = lines[i].split(",").map(v => v.trim());
+          if (values.length < 4) {
+            errors.push(`Row ${i + 1}: Incomplete row`);
+            failed++;
+            continue;
+          }
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
+          const studentData: any = {};
+          headers.forEach((header, index) => {
+            studentData[header] = values[index] || null;
+          });
 
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(",").map(v => v.trim());
-        if (values.length < 4) continue; // Skip incomplete rows
+          // Validate required fields
+          if (!studentData.name || !studentData.index_number || !studentData.grade) {
+            errors.push(`Row ${i + 1}: Missing required fields`);
+            failed++;
+            continue;
+          }
 
-        const studentData: any = {};
-        headers.forEach((header, index) => {
-          studentData[header] = values[index] || null;
-        });
-
-        // Validate required fields
-        if (!studentData.name || !studentData.index_number || !studentData.grade) {
-          errors.push(`Row ${i + 1}: Missing required fields`);
-          failed++;
-          continue;
-        }
-
-        try {
-          // Insert student with user_id
-          const { error } = await supabase.from("students").insert([{
+          batchData.push({
             user_id: user.id,
             name: studentData.name,
             index_number: studentData.index_number,
             grade: studentData.grade,
             section: studentData.section || null,
             specialty: studentData.specialty || null,
-            status: studentData.status || "active"
-          }]);
-
-          if (error) {
-            errors.push(`Row ${i + 1}: ${error.message}`);
-            failed++;
-          } else {
-            success++;
-          }
-        } catch (error: any) {
-          errors.push(`Row ${i + 1}: ${error.message}`);
-          failed++;
+            status: studentData.status?.toLowerCase() === "active" ? "active" : 
+                   studentData.status?.toLowerCase() === "inactive" ? "inactive" :
+                   studentData.status?.toLowerCase() === "graduated" ? "graduated" : "active"
+          });
         }
+
+        // Insert batch
+        if (batchData.length > 0) {
+          const { error } = await supabase.from("students").insert(batchData);
+          
+          if (error) {
+            // If batch fails, try individual inserts for this batch
+            for (let j = 0; j < batchData.length; j++) {
+              const rowNum = batchStart + j + 1;
+              const { error: individualError } = await supabase.from("students").insert([batchData[j]]);
+              
+              if (individualError) {
+                errors.push(`Row ${rowNum}: ${individualError.message}`);
+                failed++;
+              } else {
+                success++;
+              }
+            }
+          } else {
+            success += batchData.length;
+          }
+        }
+        
+        // Update progress
+        const progress = Math.round((batchEnd / totalRows) * 100);
+        toast({
+          title: "Uploading...",
+          description: `Progress: ${progress}% (${batchEnd}/${totalRows} rows processed)`,
+        });
       }
 
-      setResults({ success, failed, errors });
+      setResults({ success, failed, errors: errors.slice(0, 50) }); // Limit errors shown
 
       if (success > 0) {
         toast({
-          title: "Upload Complete",
+          title: "Upload Complete! ✓",
           description: `Successfully added ${success} students${failed > 0 ? `, ${failed} failed` : ""}`,
         });
         onSuccess();
+      } else {
+        toast({
+          title: "Upload Failed",
+          description: `No students were added. Check the errors below.`,
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       toast({
@@ -103,6 +151,7 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
         description: error.message,
         variant: "destructive",
       });
+      setResults(null);
     } finally {
       setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
