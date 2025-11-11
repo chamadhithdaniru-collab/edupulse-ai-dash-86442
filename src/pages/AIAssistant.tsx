@@ -62,14 +62,16 @@ const AIAssistant = () => {
         .from("students")
         .select("id, grade, status, attendance_percentage");
 
-      const context = `Teacher has ${students?.length || 0} students. Average attendance: ${
-        students?.reduce((acc, s) => acc + s.attendance_percentage, 0) / (students?.length || 1)
+      const studentContext = `Teacher has ${students?.length || 0} students. Average attendance: ${
+        students && students.length > 0
+          ? Math.round(students.reduce((acc, s) => acc + (s.attendance_percentage || 0), 0) / students.length)
+          : 0
       }%.`;
 
-      const { data, error } = await supabase.functions.invoke('ai-insights', {
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
-          prompt: input,
-          context: context
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          studentContext: studentContext
         }
       });
 
