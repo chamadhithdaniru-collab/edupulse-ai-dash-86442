@@ -11,6 +11,9 @@ import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Attendance from "./pages/Attendance";
 import Insights from "./pages/Insights";
+import Notifications from "./pages/Notifications";
+import AIAssistant from "./pages/AIAssistant";
+import WhySchool from "./pages/WhySchool";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,10 +30,13 @@ const App = () => (
               <Route path="/" element={<Splash />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/students" element={<Students />} />
-              <Route path="/attendance" element={<Attendance />} />
-              <Route path="/insights" element={<Insights />} />
-              <Route path="*" element={<NotFound />} />
+        <Route path="/students" element={<Students />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/insights" element={<Insights />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/ai-assistant" element={<AIAssistant />} />
+        <Route path="/why-school" element={<WhySchool />} />
+        <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

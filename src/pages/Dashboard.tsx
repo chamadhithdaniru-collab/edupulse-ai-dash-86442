@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users, TrendingUp, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { AttendanceReminder } from "@/components/notifications/AttendanceReminder";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
@@ -72,6 +73,8 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-7xl pb-8">
+        <AttendanceReminder />
+        
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           <StatsCard

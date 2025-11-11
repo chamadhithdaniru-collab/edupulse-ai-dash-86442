@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Calendar, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, BarChart3, Bell, Bot, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -13,6 +13,9 @@ export const Navigation = () => {
     { path: "/students", icon: Users, label: t('nav.students') || "Students" },
     { path: "/attendance", icon: Calendar, label: t('nav.attendance') || "Attendance" },
     { path: "/insights", icon: BarChart3, label: t('nav.insights') || "Insights" },
+    { path: "/notifications", icon: Bell, label: "Notifications" },
+    { path: "/ai-assistant", icon: Bot, label: "AI Assistant" },
+    { path: "/why-school", icon: GraduationCap, label: "Why School?" },
   ];
 
   return (
