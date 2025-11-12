@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { StudentAttendanceModal } from "@/components/dashboard/StudentAttendanceModal";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,6 +25,8 @@ const Dashboard = () => {
     atRiskCount: 0,
   });
   const [atRiskStudents, setAtRiskStudents] = useState<any[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -75,6 +78,11 @@ const Dashboard = () => {
       title: "Export Successful",
       description: `Exported ${atRiskStudents.length} at-risk students to CSV`
     });
+  };
+
+  const handleStudentClick = (student: any) => {
+    setSelectedStudent(student);
+    setShowAttendanceModal(true);
   };
 
   const loadStats = async () => {
@@ -189,7 +197,8 @@ const Dashboard = () => {
                 {atRiskStudents.map((student) => (
                   <div
                     key={student.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-destructive/10"
+                    onClick={() => handleStudentClick(student)}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-destructive/10 hover:bg-muted hover:border-destructive/20 cursor-pointer transition-all"
                   >
                     <div className="flex-1">
                       <h4 className="font-semibold">{student.name}</h4>
@@ -203,7 +212,7 @@ const Dashboard = () => {
                       <Badge variant="destructive" className="mb-1">
                         {Math.round(student.attendance_percentage)}%
                       </Badge>
-                      <p className="text-xs text-muted-foreground">Attendance</p>
+                      <p className="text-xs text-muted-foreground">Click for details</p>
                     </div>
                   </div>
                 ))}
@@ -212,6 +221,13 @@ const Dashboard = () => {
           </Card>
         )}
       </main>
+
+      {/* Attendance Details Modal */}
+      <StudentAttendanceModal
+        student={selectedStudent}
+        open={showAttendanceModal}
+        onOpenChange={setShowAttendanceModal}
+      />
     </div>
   );
 };
