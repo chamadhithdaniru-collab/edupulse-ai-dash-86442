@@ -8,6 +8,8 @@ import { AttendanceReminder } from "@/components/notifications/AttendanceReminde
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ const Dashboard = () => {
     averageAttendance: 0,
     atRiskCount: 0,
   });
+  const [atRiskStudents, setAtRiskStudents] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -46,13 +49,14 @@ const Dashboard = () => {
         const averageAttendance = students.length > 0
           ? students.reduce((sum, s) => sum + (parseFloat(s.attendance_percentage as any) || 0), 0) / students.length
           : 0;
-        const atRiskCount = students.filter(s => s.status === 'at_risk').length;
+        const atRisk = students.filter(s => s.status === 'at_risk');
 
         setStats({
           totalStudents,
           averageAttendance: Math.round(averageAttendance),
-          atRiskCount,
+          atRiskCount: atRisk.length,
         });
+        setAtRiskStudents(atRisk);
       }
     } catch (error: any) {
       console.error("Error loading stats:", error);
@@ -99,6 +103,43 @@ const Dashboard = () => {
             loading={loading}
           />
         </div>
+
+        {/* At-Risk Students Section */}
+        {atRiskStudents.length > 0 && (
+          <Card className="border-destructive/20">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <CardTitle className="text-destructive">At-Risk Students</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {atRiskStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-destructive/10"
+                  >
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{student.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {student.index_number} • Grade {student.grade}
+                        {student.section && ` ${student.section}`}
+                        {student.specialty && ` • ${student.specialty}`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="destructive" className="mb-1">
+                        {Math.round(student.attendance_percentage)}%
+                      </Badge>
+                      <p className="text-xs text-muted-foreground">Attendance</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

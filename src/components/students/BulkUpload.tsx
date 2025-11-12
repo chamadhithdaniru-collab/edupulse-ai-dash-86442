@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Upload, Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
 
 export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,6 +34,7 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
 
     setLoading(true);
     setResults(null);
+    setProgress(0);
 
     try {
       // Get current user first
@@ -123,11 +126,8 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
         }
         
         // Update progress
-        const progress = Math.round((batchEnd / totalRows) * 100);
-        toast({
-          title: "Uploading...",
-          description: `Progress: ${progress}% (${batchEnd}/${totalRows} rows processed)`,
-        });
+        const progressPercent = Math.round((batchEnd / totalRows) * 100);
+        setProgress(progressPercent);
       }
 
       setResults({ success, failed, errors: errors.slice(0, 50) }); // Limit errors shown
@@ -240,6 +240,14 @@ export const BulkUpload = ({ onSuccess }: { onSuccess: () => void }) => {
           <p>• Optional: section, specialty, status</p>
           <p>• First row must be headers</p>
         </div>
+        {loading && (
+          <div className="space-y-2">
+            <Progress value={progress} className="w-full" />
+            <p className="text-sm text-center text-muted-foreground">
+              Uploading... {progress}%
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

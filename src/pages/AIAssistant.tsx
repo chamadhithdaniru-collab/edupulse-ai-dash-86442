@@ -57,20 +57,34 @@ const AIAssistant = () => {
     setSending(true);
 
     try {
-      // Get student data for context
+      // Get detailed student data for context
       const { data: students } = await supabase
         .from("students")
-        .select("id, grade, status, attendance_percentage");
+        .select("name, index_number, grade, section, specialty, status, attendance_percentage");
 
-      const studentContext = `Teacher has ${students?.length || 0} students. Average attendance: ${
-        students && students.length > 0
-          ? Math.round(students.reduce((acc, s) => acc + (s.attendance_percentage || 0), 0) / students.length)
-          : 0
-      }%.`;
+      const atRiskStudents = students?.filter(s => s.status === 'at_risk') || [];
+      const avgAttendance = students && students.length > 0
+        ? Math.round(students.reduce((acc, s) => acc + (s.attendance_percentage || 0), 0) / students.length)
+        : 0;
+
+      const studentContext = `
+STUDENT DATA SUMMARY:
+- Total Students: ${students?.length || 0}
+- Average Attendance: ${avgAttendance}%
+- At-Risk Students: ${atRiskStudents.length}
+
+AT-RISK STUDENTS (attendance < 75%):
+${atRiskStudents.map(s => `• ${s.name} (${s.index_number}) - Grade ${s.grade}${s.section ? ` ${s.section}` : ''} - Attendance: ${s.attendance_percentage}%`).join('\n')}
+
+ALL STUDENTS:
+${students?.map(s => `• ${s.name} (${s.index_number}) - Grade ${s.grade}${s.section ? ` ${s.section}` : ''} - Status: ${s.status} - Attendance: ${s.attendance_percentage}%`).join('\n') || 'No students yet'}`;
+
+      // Include the new user message in the conversation
+      const conversationHistory = [...messages, userMessage];
 
       const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
-          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          messages: conversationHistory.map(m => ({ role: m.role, content: m.content })),
           studentContext: studentContext
         }
       });
